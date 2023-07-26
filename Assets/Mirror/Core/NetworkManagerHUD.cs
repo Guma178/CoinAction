@@ -82,7 +82,11 @@ namespace Mirror
                 }
                 else
                 {
-                    if (GUILayout.Button("Server Only")) manager.StartServer();
+                    if (GUILayout.Button("Server Only"))
+                    {
+                        Debug.Log("Button Server Only");
+                        manager.StartServer();
+                    }
                 }
             }
             else

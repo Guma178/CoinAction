@@ -2,19 +2,18 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Mirror;
+using CoinAction.Lobby;
 
-/*
-	Documentation: https://mirror-networking.gitbook.io/docs/components/network-manager
-	API Reference: https://mirror-networking.com/docs/api/Mirror.NetworkManager.html
-*/
-
-namespace CoinAction.Networking
+namespace CoinAction
 {
     public class NetworkManager : Mirror.NetworkManager
     {
         // Overrides the base singleton so we don't
         // have to cast to this type everywhere.
-        public static new NetworkManager Instance { get; private set; }
+        public static NetworkManager Instance { get; private set; }
+
+        public event Action<NetworkConnectionToClient> ClientReady;
+        public event Action<NetworkConnectionToClient> ClientDisconnected;
 
         /// <summary>
         /// Runs on both Server and Client
@@ -142,7 +141,9 @@ namespace CoinAction.Networking
         /// <para>Unity calls this on the Server when a Client connects to the Server. Use an override to tell the NetworkManager what to do when a client connects to the server.</para>
         /// </summary>
         /// <param name="conn">Connection from client.</param>
-        public override void OnServerConnect(NetworkConnectionToClient conn) { }
+        public override void OnServerConnect(NetworkConnectionToClient conn) 
+        {
+        }
 
         /// <summary>
         /// Called on the server when a client is ready.
@@ -162,6 +163,7 @@ namespace CoinAction.Networking
         public override void OnServerAddPlayer(NetworkConnectionToClient conn)
         {
             base.OnServerAddPlayer(conn);
+            ClientReady?.Invoke(conn);
         }
 
         /// <summary>
@@ -171,6 +173,7 @@ namespace CoinAction.Networking
         /// <param name="conn">Connection from client.</param>
         public override void OnServerDisconnect(NetworkConnectionToClient conn)
         {
+            ClientDisconnected?.Invoke(conn);
             base.OnServerDisconnect(conn);
         }
 
@@ -227,13 +230,17 @@ namespace CoinAction.Networking
         /// This is invoked when a host is started.
         /// <para>StartHost has multiple signatures, but they all cause this hook to be called.</para>
         /// </summary>
-        public override void OnStartHost() { }
+        public override void OnStartHost() 
+        {
+        }
 
         /// <summary>
         /// This is invoked when a server is started - including when a host is started.
         /// <para>StartServer has multiple signatures, but they all cause this hook to be called.</para>
         /// </summary>
-        public override void OnStartServer() { }
+        public override void OnStartServer() 
+        {
+        }
 
         /// <summary>
         /// This is invoked when the client is started.
