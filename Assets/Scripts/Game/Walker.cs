@@ -11,7 +11,6 @@ namespace CoinAction.Game
     [RequireComponent(typeof(NetworkTransform), typeof(Rigidbody2D))]
     public class Walker : NetworkBehaviour
     {
-        #region Server
         Transform thisTransform;
         public Transform ThisTransform
         {
@@ -54,6 +53,7 @@ namespace CoinAction.Game
             }
         }
 
+        #region Server
         [SerializeField]
         private float moveSpeed = 1.5f;
 
@@ -64,10 +64,9 @@ namespace CoinAction.Game
 
         private NetworkConnection owner;
 
-        public void Init(Vector2 position, NetworkConnection owner)
+        public void Init(NetworkConnection owner)
         {
             this.owner = owner;
-            ThisRigidbody.MovePosition(position);
         }
 
         [Command(requiresAuthority = false)]
@@ -96,6 +95,8 @@ namespace CoinAction.Game
         #region Client
 
         #endregion
+
+
 
         private void FixedUpdate()
         {

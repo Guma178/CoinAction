@@ -1,5 +1,53 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2637616927140240735
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7115111178117702308}
+  - component: {fileID: 3774762901203660717}
+  m_Layer: 0
+  m_Name: MissilesObjectsPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7115111178117702308
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2637616927140240735}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3814066520311374347}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3774762901203660717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2637616927140240735}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1aa1cecea74a7c64a850e2a314478366, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  prefab: {fileID: 3802598847250899985, guid: fef7f83e18f9fe34dbd59be56fc4e2b2, type: 3}
 --- !u!1 &3814066520311374356
 GameObject:
   m_ObjectHideFlags: 0
@@ -35,7 +83,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 7115111178117702308}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -141,12 +190,16 @@ MonoBehaviour:
   colors:
   - {r: 0, g: 1, b: 0.10499692, a: 1}
   - {r: 1, g: 0.93442965, b: 0, a: 1}
-  - {r: 1, g: 0.09860484, b: 0, a: 1}
+  - {r: 1, g: 0.53673553, b: 0, a: 1}
   - {r: 1, g: 0, b: 0.98310184, a: 1}
   - {r: 0.42779493, g: 0, b: 1, a: 1}
   - {r: 0, g: 0.102321625, b: 1, a: 1}
   - {r: 0, g: 0.98154783, b: 1, a: 1}
+  misilesObjectsPool: {fileID: 3774762901203660717}
   competitorPrefab: {fileID: 3147407217552421453, guid: f85f4cc833cc2624cb4b795359ee6cad, type: 3}
+  spawnArea:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 4.75, y: 2.2, z: 0}
 --- !u!61 &734629862943088755
 BoxCollider2D:
   m_ObjectHideFlags: 0

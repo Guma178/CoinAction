@@ -10,20 +10,6 @@ namespace CoinAction.Game
     [RequireComponent(typeof(SpriteRenderer), typeof(NetworkMatch), typeof(Walker))]
     public abstract class Competitor : NetworkBehaviour
     {
-        private System.Tuple<bool, NetworkMatch> networkMatch = System.Tuple.Create<bool, NetworkMatch>(false, null);
-        public NetworkMatch NetworkMatch
-        {
-            get
-            {
-                if (!networkMatch.Item1)
-                {
-                    networkMatch = System.Tuple.Create<bool, NetworkMatch>(true, this.GetComponent<NetworkMatch>());
-                }
-
-                return networkMatch.Item2;
-            }
-        }
-
         private System.Tuple<bool, SpriteRenderer> sprite = System.Tuple.Create<bool, SpriteRenderer>(false, null);
         public SpriteRenderer Sprite
         {
@@ -95,36 +81,84 @@ namespace CoinAction.Game
         }
 
         #region Server
-        Color color;
+        private Color color;
+        private NetworkConnection owner;
 
-        public void Init(Guid matchId, Vector2 position, Color color, NetworkConnection owner)
+        private System.Tuple<bool, NetworkMatch> networkMatch = System.Tuple.Create<bool, NetworkMatch>(false, null);
+        public NetworkMatch NetworkMatch
         {
-            NetworkMatch.matchId = matchId;
-            this.color = color;
-            Walker.Init(position, owner);
+            get
+            {
+                if (!networkMatch.Item1)
+                {
+                    networkMatch = System.Tuple.Create<bool, NetworkMatch>(true, this.GetComponent<NetworkMatch>());
+                }
+
+                return networkMatch.Item2;
+            }
+        }
+
+        public bool IsActive { get; set; }
+
+        public void Init(Data data)
+        {
+            NetworkMatch.matchId = data.MatchId;
+            this.color = data.CompetitorColor;
+            this.owner = data.Owner;
+
+            IsActive = true;
+            Walker.Init(data.Owner);
+            Shooter.Init(data.Owner, data.CompetitorColor, data.MissilesPool);
+            Victim.Init(data.Owner, data.CompetitorColor);
         }
 
         [Command(requiresAuthority = false)]
-        private void CmdSynchronization(NetworkConnectionToClient sender = null)
+        private void CmdStateSynchronization(NetworkConnectionToClient sender = null)
         {
-            Synchronize(sender, color);
+            State state = new State
+            {
+                IsOwner = sender == owner,
+                Color = color
+            };
+
+            StateSynchronize(sender, state);
         }
 
+        public class Data
+        {
+            public Guid MatchId;
+            public Color CompetitorColor;
+            public MissilesObjectsPool MissilesPool;
+            public NetworkConnection Owner;
+        }
         #endregion
 
         #region Client
+
         public override void OnStartClient()
         {
             base.OnStartClient();
 
-            CmdSynchronization();
+            CmdStateSynchronization();
         }
 
         [TargetRpc]
-        private void Synchronize(NetworkConnection target, Color color)
+        private void StateSynchronize(NetworkConnection target, State state)
         {
-            Sprite.color = color;
+            Fetch(state);
+        }
+
+        protected virtual void Fetch(State state)
+        {
+            Sprite.color = state.Color;
         }
         #endregion
+
+        [System.Serializable]
+        public class State
+        {
+            public bool IsOwner;
+            public Color Color;
+        }
     }
 }
