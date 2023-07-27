@@ -59,6 +59,7 @@ namespace CoinAction.Lobby
 
             if (existent == null)
             {
+                Kick(sender);
                 player = sender.identity.GetComponent<User>();
                 existent = new Room { Name = name, Players = new List<User> { player } };
                 rooms.Add(existent);
@@ -83,6 +84,7 @@ namespace CoinAction.Lobby
 
             if (existent != null)
             {
+                Kick(sender);
                 player = sender.identity.GetComponent<User>();
                 existent.Players.Add(player);
                 if (existent.Players.Count >= playersToStart)
@@ -131,10 +133,10 @@ namespace CoinAction.Lobby
             if (user != null)
             {
                 existent.Players.Remove(user);
-            }
-            if (existent.Players.Count == 0)
-            {
-                rooms.Remove(existent);
+                if (existent.Players.Count == 0)
+                {
+                    rooms.Remove(existent);
+                }
             }
         }
         #endregion

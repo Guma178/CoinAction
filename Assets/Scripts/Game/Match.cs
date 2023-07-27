@@ -12,19 +12,12 @@ namespace CoinAction.Game
     [RequireComponent(typeof(NetworkMatch))]
     public class Match : NetworkBehaviour
     {
-        // Start is called before the first frame update
-        void Start()
-        {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
         #region Server
+        [SerializeField]
+        Color[] colors;
+
+        [SerializeField]
+        Competitor competitorPrefab;
 
         private System.Tuple<bool, NetworkMatch> networkMatch = System.Tuple.Create<bool, NetworkMatch>(false, null);
         public NetworkMatch NetworkMatch
@@ -40,6 +33,10 @@ namespace CoinAction.Game
             }
         }
 
+        private int colorPointer = 0;
+
+        private List<Competitor> competitors = new List<Competitor>();
+
         public override void OnStartServer()
         {
             base.OnStartServer();
@@ -48,7 +45,19 @@ namespace CoinAction.Game
         [Command(requiresAuthority = false)]
         private void CmdPlayerReady(NetworkConnectionToClient sender = null)
         {
-            Joined(sender);
+            Competitor competitor;
+
+            competitor = Instantiate(competitorPrefab, this.transform);
+            competitor.Init(NetworkMatch.matchId, Vector2.zero, colors[colorPointer], sender);
+            NetworkServer.Spawn(competitor.gameObject);
+
+            competitors.Add(competitor);
+
+            colorPointer++;
+            if (colorPointer >= colors.Length)
+            {
+                colorPointer = 0;
+            }
         }
 
 
@@ -61,11 +70,7 @@ namespace CoinAction.Game
             base.OnStartClient();
 
             CmdPlayerReady();
-        }
 
-        [TargetRpc]
-        private void Joined(NetworkConnection target)
-        {
             Menus.Instance.Activate(Menus.Instance.MatchMenu);
         }
         #endregion
