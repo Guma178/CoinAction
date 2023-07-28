@@ -10,12 +10,17 @@ namespace CoinAction.Game
     {
         public event System.Action<short> CollectedValuesChanged;
 
-        #region Server
-        [SyncVar(hook = nameof(ValuesChange))]
+        #region 
         private short collectedValues;
 
         public short CollectedValues => collectedValues;
 
+        private NetworkConnection owner;
+
+        public void Init(NetworkConnection owner)
+        {
+            this.owner = owner;
+        }
 
         public void OnTriggerEnter2D(Collider2D collision)
         {
@@ -23,13 +28,16 @@ namespace CoinAction.Game
             if (collectable != null)
             {
                 collectedValues += collectable.Collect();
-                CollectedValuesChanged(collectedValues);
+                ValuesChange(owner, collectedValues);
+                CollectedValuesChanged?.Invoke(collectedValues);
             }
         }
         #endregion
 
         #region Client
-        private void ValuesChange(short collectedValuesOld, short collectedValuesNew)
+
+        [TargetRpc]
+        private void ValuesChange(NetworkConnection target, short collectedValuesNew)
         {
             CollectedValuesChanged?.Invoke(collectedValuesNew);
         }

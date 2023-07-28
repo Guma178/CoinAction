@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static CoinAction.Game.Match;
 
 namespace CoinAction.Game
 {
@@ -83,6 +84,10 @@ namespace CoinAction.Game
         #region Server
         private Color color;
         private NetworkConnection owner;
+        private NetworkIdentity pattent;
+
+        public NetworkConnection Owner => owner;
+        public Color Color => color;
 
         private System.Tuple<bool, NetworkMatch> networkMatch = System.Tuple.Create<bool, NetworkMatch>(false, null);
         public NetworkMatch NetworkMatch
@@ -105,11 +110,13 @@ namespace CoinAction.Game
             NetworkMatch.matchId = data.MatchId;
             this.color = data.CompetitorColor;
             this.owner = data.Owner;
+            this.pattent = data.Parrent;
 
             IsActive = true;
             Walker.Init(data.Owner);
             Shooter.Init(data.Owner, data.CompetitorColor, data.MissilesPool);
             Victim.Init(data.Owner, data.CompetitorColor);
+            Collector.Init(data.Owner);
         }
 
         [Command(requiresAuthority = false)]
@@ -118,7 +125,9 @@ namespace CoinAction.Game
             State state = new State
             {
                 IsOwner = sender == owner,
-                Color = color
+                Color = color,
+                Parrent = pattent,
+                Position = transform.position,
             };
 
             StateSynchronize(sender, state);
@@ -130,6 +139,7 @@ namespace CoinAction.Game
             public Color CompetitorColor;
             public MissilesObjectsPool MissilesPool;
             public NetworkConnection Owner;
+            public NetworkIdentity Parrent;
         }
         #endregion
 
@@ -151,14 +161,32 @@ namespace CoinAction.Game
         protected virtual void Fetch(State state)
         {
             Sprite.color = state.Color;
+            ThisTransform.position = state.Position;
+            ThisTransform.parent = state.Parrent.transform;
         }
         #endregion
+
+        Transform thisTransform;
+        private Transform ThisTransform
+        {
+            get
+            {
+                if (thisTransform == null)
+                {
+                    thisTransform = this.transform;
+                }
+
+                return thisTransform;
+            }
+        }
 
         [System.Serializable]
         public class State
         {
             public bool IsOwner;
             public Color Color;
+            public NetworkIdentity Parrent;
+            public Vector3 Position;
         }
     }
 }

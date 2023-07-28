@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 5134863437529363279}
   - component: {fileID: 1758066670656520939}
   - component: {fileID: 8117475750341364914}
+  - component: {fileID: 1606916618832818481}
   - component: {fileID: 7478258144235090328}
   m_Layer: 6
   m_Name: Competitor
@@ -246,6 +247,21 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   maximalHealth: 100
+--- !u!114 &1606916618832818481
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3901448398500271966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40fe018de56bdc242a39f531ac8a364c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
 --- !u!114 &7478258144235090328
 MonoBehaviour:
   m_ObjectHideFlags: 0

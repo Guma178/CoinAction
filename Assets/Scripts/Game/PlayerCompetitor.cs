@@ -35,6 +35,7 @@ public class PlayerCompetitor : Competitor
                 Menus.Instance.MatchMenu.DisplayEnemyHealth(actualHealth / maximalHealtj, color);
             };
             Victim.HealthChanged += delegate (float actual, float maximal) { Menus.Instance.MatchMenu.PlayerHealthSlider.value = actual / maximal; };
+            Collector.CollectedValuesChanged += delegate (short val) { Menus.Instance.MatchMenu.CollectValuesLable.text = val.ToString(); };
             if (movementSendingProcess != null)
             {
                 StopCoroutine(movementSendingProcess);

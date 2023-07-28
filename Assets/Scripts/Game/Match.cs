@@ -50,9 +50,12 @@ namespace CoinAction.Game
         private int randSeed = DateTime.Now.Millisecond;
         private List<Competitor> competitors = new List<Competitor>();
 
+
         public override void OnStartServer()
         {
             base.OnStartServer();
+
+            StartCoroutine(CollectablesSpawning());
 
             CoinAction.NetworkManager.Instance.ClientDisconnected += Kick;
         }
@@ -68,7 +71,8 @@ namespace CoinAction.Game
                 MatchId = NetworkMatch.matchId,
                 CompetitorColor = colors[colorPointer],
                 Owner = sender,
-                MissilesPool = misilesObjectsPool
+                MissilesPool = misilesObjectsPool,
+                Parrent = this.netIdentity
             };
 
             colorPointer++;
@@ -77,28 +81,63 @@ namespace CoinAction.Game
                 colorPointer = 0;
             }
 
-            competitor = Instantiate(competitorPrefab, GetRandomPositionOnField(), Quaternion.identity, this.transform);
-            competitor.Init(data);
-            NetworkServer.Spawn(competitor.gameObject);
+            Vector3 pos = GetRandomPositionOnField(); 
 
+            competitor = Instantiate(competitorPrefab, pos, Quaternion.identity, this.transform);
+            competitor.Init(data);
             competitor.Victim.Died += delegate ()
             {
                 competitor.IsActive = false;
                 NetworkServer.UnSpawn(competitor.gameObject);
+                CheackWinCondition();
             };
+            NetworkServer.Spawn(competitor.gameObject);
 
             competitors.Add(competitor);
+
+            SendCameraPosition(sender, this.transform.position);
         }
 
         private void Kick(NetworkConnectionToClient conn)
         {
             Competitor competitor;
 
-            competitor = competitors.FirstOrDefault();
+            competitor = competitors.FirstOrDefault(cmp => cmp.Owner == conn);
             if (competitor != null)
             {
                 competitor.IsActive = false;
                 NetworkServer.UnSpawn(competitor.gameObject);
+            }
+            CheackWinCondition();
+        }
+
+        private void CheackWinCondition()
+        {
+            Rezults rez;
+            IEnumerable<Competitor> alive = competitors.Where(c => c.IsActive);
+            Competitor winner;
+
+            if (alive.Count() <= 1)
+            {
+                winner = alive.FirstOrDefault();
+                if (winner != null)
+                {
+                    foreach (Competitor c in competitors)
+                    {
+                        if (c.Owner.isReady)
+                        {
+                            rez = new Rezults
+                            {
+                                IsWon = c.IsActive,
+                                WinnerCoinsAmount = winner.Collector.CollectedValues,
+                                WinnerColor = winner.Color,
+                                PlayerColor = c.Color,
+                                PlayerCoinsAmount = c.Collector.CollectedValues
+                            };
+                            SendRezults(c.Owner, rez);
+                        }
+                    }
+                }
             }
         }
 
@@ -108,10 +147,10 @@ namespace CoinAction.Game
 
             while (true)
             {
-                yield return new WaitForSeconds(collectableSpawnPeriod);
-
                 collectable = collectablesObjectsPool.Pop(delegate (Collectable col) { col.Init(NetworkMatch.matchId, GetRandomPositionOnField()); });
                 collectable.Collected += OnCollectableCollected;
+
+                yield return new WaitForSeconds(collectableSpawnPeriod);
             }
         }
 
@@ -123,11 +162,12 @@ namespace CoinAction.Game
 
         private Vector2 GetRandomPositionOnField()
         {
-            Vector2 position;
+            Vector2 position, rez;
             UnityEngine.Random.InitState(randSeed);
             randSeed++;
             position = new Vector2(UnityEngine.Random.Range(spawnArea.min.x, spawnArea.max.x), UnityEngine.Random.Range(spawnArea.min.y, spawnArea.max.y));
-            return position;
+            rez = (Vector2)ThisTransform.position + position;
+            return rez;
         }
         #endregion
 
@@ -141,6 +181,44 @@ namespace CoinAction.Game
 
             Menus.Instance.Activate(Menus.Instance.MatchMenu);
         }
+
+        [TargetRpc]
+        private void SendRezults(NetworkConnection target, Rezults rezults)
+        {
+            Menus.Instance.MatchMenu.RezultsPopUp.LoadRezults(rezults);
+        }
+
+        [TargetRpc]
+        private void SendCameraPosition(NetworkConnection target, Vector3 position)
+        {
+            Transform cameraTransform = Camera.main.transform;
+            Vector3 height = Vector3.ProjectOnPlane(cameraTransform.position, Vector3.up);
+            cameraTransform.position = position + height;
+        }
         #endregion
+
+        [System.Serializable]
+        public class Rezults
+        {
+            public bool IsWon;
+            public Color WinnerColor;
+            public short WinnerCoinsAmount;
+            public Color PlayerColor;
+            public short PlayerCoinsAmount;
+        }
+
+        Transform thisTransform;
+        private Transform ThisTransform
+        {
+            get
+            {
+                if (thisTransform == null)
+                {
+                    thisTransform = this.transform;
+                }
+
+                return thisTransform;
+            }
+        }
     }
 }

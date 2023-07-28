@@ -1,5 +1,6 @@
     using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,7 +21,13 @@ namespace CoinAction.UI
         Joystick moveStick;
 
         [SerializeField]
+        RezultsPopUp rezultsPopUp;
+
+        [SerializeField]
         Button shootButton;
+
+        [SerializeField]
+        TMP_Text collectValuesLable;
 
         [SerializeField]
         float enemyBarDisplayingTime = 2;
@@ -30,6 +37,9 @@ namespace CoinAction.UI
         public Slider PlayerHealthSlider => playerHealthSlider;
         public Slider EnemyHealthSlider => enemyHealthSlider;
         public Joystick MoveStick => moveStick;
+        public RezultsPopUp RezultsPopUp => rezultsPopUp;
+
+        public TMP_Text CollectValuesLable => collectValuesLable;
 
         private Coroutine displayingCoroutine;
 

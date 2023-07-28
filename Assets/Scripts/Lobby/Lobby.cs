@@ -21,7 +21,6 @@ namespace CoinAction.Lobby
         [SerializeField]
         Match matchPrefab;
 
-
         private System.Tuple<bool, NetworkMatch> networkMatch = System.Tuple.Create<bool, NetworkMatch>(false, null);
         private NetworkMatch NetworkMatch
         {
@@ -35,6 +34,12 @@ namespace CoinAction.Lobby
                 return networkMatch.Item2;
             }
         }
+
+        private readonly Vector3 step = Vector3.up * 100;
+
+        private int matchCounter = 0;
+
+        private Vector3 placing = Vector3.zero;
 
         private List<Room> rooms;
 
@@ -65,7 +70,14 @@ namespace CoinAction.Lobby
                 rooms.Add(existent);
                 if (existent.Players.Count >= playersToStart)
                 {
-                    existent.Match = Instantiate(matchPrefab, this.transform);
+                    existent.Match = Instantiate(matchPrefab, placing, Quaternion.identity, this.transform);
+                    existent.Match.gameObject.name += matchCounter.ToString();
+                    matchCounter++;
+                    placing += step;
+                    if (placing.y >= float.MaxValue - step.y)
+                    {
+                        placing = Vector3.zero;
+                    }
                     NetworkServer.Spawn(existent.Match.gameObject);
                     player.NetworkMatch.matchId = existent.Match.NetworkMatch.matchId;
                 }
@@ -91,7 +103,12 @@ namespace CoinAction.Lobby
                 {
                     if (existent.Match == null)
                     {
-                        existent.Match = Instantiate(matchPrefab, this.transform);
+                        existent.Match = Instantiate(matchPrefab, placing, Quaternion.identity, this.transform);
+                        placing += step;
+                        if (placing.y >= float.MaxValue - step.y)
+                        {
+                            placing = Vector3.zero;
+                        }
                         NetworkServer.Spawn(existent.Match.gameObject);
                         existent.Match.NetworkMatch.matchId = Guid.NewGuid();
                         foreach (User p in existent.Players)
