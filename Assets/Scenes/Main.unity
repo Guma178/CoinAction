@@ -2356,7 +2356,7 @@ MonoBehaviour:
   offlineScene: 
   onlineScene: 
   transport: {fileID: 1298886531}
-  networkAddress: localhost
+  networkAddress: 95.179.134.201
   maxConnections: 100
   authenticator: {fileID: 0}
   playerPrefab: {fileID: 5512611523376383664, guid: 92c93ea4cb99f4f499764c7e3ab9af71, type: 3}
@@ -2548,7 +2548,7 @@ MonoBehaviour:
   playerHealthSlider: {fileID: 2003480981}
   enemyHealthSlider: {fileID: 807305092}
   moveStick: {fileID: 1458256281}
-  rezultsPopUp: {fileID: 0}
+  rezultsPopUp: {fileID: 2075207333}
   shootButton: {fileID: 1024255009}
   collectValuesLable: {fileID: 1456213606}
   enemyBarDisplayingTime: 2

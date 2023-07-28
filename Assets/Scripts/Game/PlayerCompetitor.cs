@@ -3,6 +3,7 @@ using CoinAction.UI;
 using Mirror;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerCompetitor : Competitor
@@ -27,21 +28,56 @@ public class PlayerCompetitor : Competitor
 
         if (state.IsOwner)
         {
-            Menus.Instance.MatchMenu.MoveStick.ValueChanged += delegate (Vector2 dir) { moveDirection = dir; };
             Menus.Instance.MatchMenu.Colorize(state.Color);
-            Menus.Instance.MatchMenu.ShootClick += delegate () { Shooter.CmdShoot(); };
-            Shooter.OnVictimHited += delegate (float actualHealth, float maximalHealtj, Color color) 
-            {
-                Menus.Instance.MatchMenu.DisplayEnemyHealth(actualHealth / maximalHealtj, color);
-            };
-            Victim.HealthChanged += delegate (float actual, float maximal) { Menus.Instance.MatchMenu.PlayerHealthSlider.value = actual / maximal; };
-            Collector.CollectedValuesChanged += delegate (short val) { Menus.Instance.MatchMenu.CollectValuesLable.text = val.ToString(); };
+
+            Menus.Instance.MatchMenu.MoveStick.ValueChanged += Movement;
+            Menus.Instance.MatchMenu.ShootClick += Shoot;
+            Shooter.OnVictimHited += OnVictimHit;
+            Victim.HealthChanged += OnHealthChange;
+            Collector.CollectedValuesChanged += ValuesCollected;
+
             if (movementSendingProcess != null)
             {
                 StopCoroutine(movementSendingProcess);
             }
             movementSendingProcess = StartCoroutine(MovementSending());
         }
+    }
+
+    private void Movement(Vector2 dir)
+    {
+        moveDirection = dir;
+    }
+
+    private void Shoot()
+    {
+        Shooter.CmdShoot();
+    }
+
+    private void OnVictimHit(float actualHealth, float maximalHealtj, Color color)
+    {
+        Menus.Instance.MatchMenu.DisplayEnemyHealth(actualHealth / maximalHealtj, color);
+    }
+
+    private void OnHealthChange(float actual, float maximal)
+    {
+        Menus.Instance.MatchMenu.PlayerHealthSlider.value = actual / maximal;
+    }
+
+    private void ValuesCollected(short val)
+    { 
+        Menus.Instance.MatchMenu.CollectValuesLable.text = val.ToString(); 
+    }
+
+    public override void OnStopClient()
+    {
+        base.OnStopClient();
+
+        Menus.Instance.MatchMenu.MoveStick.ValueChanged -= Movement;
+        Menus.Instance.MatchMenu.ShootClick -= Shoot;
+        Shooter.OnVictimHited -= OnVictimHit;
+        Victim.HealthChanged -= OnHealthChange;
+        Collector.CollectedValuesChanged -= ValuesCollected;
     }
 
     private IEnumerator MovementSending()

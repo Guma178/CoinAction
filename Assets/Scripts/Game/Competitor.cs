@@ -103,6 +103,7 @@ namespace CoinAction.Game
             }
         }
 
+        public bool IsInGame { get; set; }
         public bool IsActive { get; set; }
 
         public void Init(Data data)
@@ -112,6 +113,7 @@ namespace CoinAction.Game
             this.owner = data.Owner;
             this.pattent = data.Parrent;
 
+            IsInGame = true;
             IsActive = true;
             Walker.Init(data.Owner);
             Shooter.Init(data.Owner, data.CompetitorColor, data.MissilesPool);

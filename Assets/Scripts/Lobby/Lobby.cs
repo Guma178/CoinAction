@@ -62,6 +62,8 @@ namespace CoinAction.Lobby
             User player;
             Room existent = rooms.FirstOrDefault(r => r.Name == name);
 
+            Debug.Log("CmdCreateRoom " + name);
+
             if (existent == null)
             {
                 Kick(sender);
@@ -71,7 +73,7 @@ namespace CoinAction.Lobby
                 if (existent.Players.Count >= playersToStart)
                 {
                     existent.Match = Instantiate(matchPrefab, placing, Quaternion.identity, this.transform);
-                    existent.Match.gameObject.name += matchCounter.ToString();
+                    existent.Match.Finished += delegate () { rooms.Remove(existent); };
                     matchCounter++;
                     placing += step;
                     if (placing.y >= float.MaxValue - step.y)
@@ -109,6 +111,11 @@ namespace CoinAction.Lobby
                         {
                             placing = Vector3.zero;
                         }
+                        existent.Match.Finished += delegate () 
+                        { 
+                            rooms.Remove(existent);
+                        };
+                        existent.Match.UserLeft += MoveToLobby;
                         NetworkServer.Spawn(existent.Match.gameObject);
                         existent.Match.NetworkMatch.matchId = Guid.NewGuid();
                         foreach (User p in existent.Players)
@@ -164,8 +171,15 @@ namespace CoinAction.Lobby
         public override void OnStartClient()
         {
             base.OnStartClient();
-            Menus.Instance.LobbyMenu.CreateClick += CreateRoomRequest;
-            Menus.Instance.LobbyMenu.JoinClick += JoinRoomRequest;
+        }
+
+        private void ClienStart()
+        {
+            if (isClient)
+            {
+                Menus.Instance.LobbyMenu.CreateClick += CreateRoomRequest;
+                Menus.Instance.LobbyMenu.JoinClick += JoinRoomRequest;
+            }
         }
 
         private void CreateRoomRequest(string name)
@@ -191,6 +205,11 @@ namespace CoinAction.Lobby
             }
         }
         #endregion
+
+        private void Start()
+        {
+            ClienStart();
+        }
     }
 
     public enum LobbyResponses { Exist, Notexist }

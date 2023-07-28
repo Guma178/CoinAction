@@ -35,8 +35,8 @@ namespace CoinAction.Game
             actualHealth -= damage;
             if (actualHealth <= 0)
             {
-                Died?.Invoke();
                 Dead(owner);
+                Died?.Invoke();
             }
         }
 

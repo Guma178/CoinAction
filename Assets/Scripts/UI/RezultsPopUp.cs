@@ -19,7 +19,12 @@ namespace CoinAction.UI
 
         private void Start()
         {
-            okButtton.onClick.AddListener(delegate() { this.gameObject.SetActive(false); OkButttonClick?.Invoke(); });
+            okButtton.onClick.AddListener(delegate() 
+            { 
+                Menus.Instance.Activate(Menus.Instance.LobbyMenu); 
+                this.gameObject.SetActive(false); 
+                OkButttonClick?.Invoke(); 
+            });
         }
 
         public void LoadRezults(Match.Rezults rezults)

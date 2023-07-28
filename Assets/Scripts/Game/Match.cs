@@ -46,6 +46,10 @@ namespace CoinAction.Game
             }
         }
 
+        public event System.Action Finished;
+        public event System.Action<NetworkConnectionToClient> UserLeft;
+
+        private bool isFinished;
         private int colorPointer = 0;
         private int randSeed = DateTime.Now.Millisecond;
         private List<Competitor> competitors = new List<Competitor>();
@@ -56,6 +60,8 @@ namespace CoinAction.Game
             base.OnStartServer();
 
             StartCoroutine(CollectablesSpawning());
+
+            isFinished = false;
 
             CoinAction.NetworkManager.Instance.ClientDisconnected += Kick;
         }
@@ -87,9 +93,12 @@ namespace CoinAction.Game
             competitor.Init(data);
             competitor.Victim.Died += delegate ()
             {
-                competitor.IsActive = false;
-                NetworkServer.UnSpawn(competitor.gameObject);
-                CheackWinCondition();
+                if (competitor.IsActive)
+                {
+                    competitor.IsActive = false;
+                    NetworkServer.UnSpawn(competitor.gameObject);
+                    CheackWinCondition();
+                }
             };
             NetworkServer.Spawn(competitor.gameObject);
 
@@ -98,17 +107,46 @@ namespace CoinAction.Game
             SendCameraPosition(sender, this.transform.position);
         }
 
+        private void MatchLeave(NetworkConnectionToClient sender = null)
+        {
+            Competitor competitor;
+
+            competitor = competitors.FirstOrDefault(cmp => cmp.Owner == sender);
+
+            if (competitor != null)
+            {
+                competitor.IsInGame = false;
+                if (sender.isReady)
+                {
+                    UserLeft?.Invoke(sender);
+                }
+            }
+
+            if (competitors.Count(c => c.IsInGame) <= 0)
+            {
+                NetworkServer.UnSpawn(this.gameObject);
+            }
+        }
+
+        [Command(requiresAuthority = false)]
+        private void LeaveMatch(NetworkConnectionToClient sender = null)
+        {
+            MatchLeave(sender);
+        }
+
         private void Kick(NetworkConnectionToClient conn)
         {
             Competitor competitor;
 
-            competitor = competitors.FirstOrDefault(cmp => cmp.Owner == conn);
+            competitor = competitors.FirstOrDefault(cmp => cmp.Owner == conn && cmp.IsActive);
             if (competitor != null)
             {
                 competitor.IsActive = false;
                 NetworkServer.UnSpawn(competitor.gameObject);
+                CheackWinCondition();
+                competitor.IsInGame = false;
             }
-            CheackWinCondition();
+            MatchLeave(conn);
         }
 
         private void CheackWinCondition()
@@ -117,27 +155,37 @@ namespace CoinAction.Game
             IEnumerable<Competitor> alive = competitors.Where(c => c.IsActive);
             Competitor winner;
 
-            if (alive.Count() <= 1)
+            if (!isFinished)
             {
-                winner = alive.FirstOrDefault();
-                if (winner != null)
+                if (alive.Count() <= 1)
                 {
-                    foreach (Competitor c in competitors)
+                    isFinished = true;
+                    Finished?.Invoke();
+                    winner = alive.FirstOrDefault();
+                    if (winner != null)
                     {
-                        if (c.Owner.isReady)
+                        foreach (Competitor c in competitors)
                         {
-                            rez = new Rezults
+                            if (c.Owner.isReady)
                             {
-                                IsWon = c.IsActive,
-                                WinnerCoinsAmount = winner.Collector.CollectedValues,
-                                WinnerColor = winner.Color,
-                                PlayerColor = c.Color,
-                                PlayerCoinsAmount = c.Collector.CollectedValues
-                            };
-                            SendRezults(c.Owner, rez);
+                                rez = new Rezults
+                                {
+                                    IsWon = c.IsActive,
+                                    WinnerCoinsAmount = winner.Collector.CollectedValues,
+                                    WinnerColor = winner.Color,
+                                    PlayerColor = c.Color,
+                                    PlayerCoinsAmount = c.Collector.CollectedValues
+                                };
+                                SendRezults(c.Owner, rez);
+                            }
+                            if (c.IsActive)
+                            {
+                                NetworkServer.UnSpawn(c.gameObject);
+                            }
                         }
                     }
                 }
+
             }
         }
 
@@ -180,6 +228,10 @@ namespace CoinAction.Game
             CmdPlayerReady();
 
             Menus.Instance.Activate(Menus.Instance.MatchMenu);
+            Menus.Instance.MatchMenu.RezultsPopUp.OkButttonClick += delegate () 
+            { 
+                LeaveMatch();
+            };
         }
 
         [TargetRpc]
